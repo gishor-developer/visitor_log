@@ -15,7 +15,7 @@ const { errorHandler } = require('./middlewares/errorHandler');
 const v1Routes = require('./routes/v1Routes');
 const v2Routes = require('./routes/v2Routes');
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 5001;
 
 const app = express()
 

@@ -1,3 +1,9 @@
+const {
+    signAccessToken,
+    signRefreshToken,
+    verifyRefreshToken,
+} = require('../../helpers/jwtHelpers');
+
 const data = {
     country: require('../../public/data/country-by-abbreviation.json'),
     flag: require('../../public/data/country-by-flag.json'),
@@ -12,8 +18,6 @@ const list = async (req, res) => {
         const responseCode = 200
         const responseDate = {
             "success": true,
-            "code": responseCode,
-            "message": "",
             "data": countryData
         }
         res.status(responseCode).json(responseDate)

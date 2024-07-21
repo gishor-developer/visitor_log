@@ -1,6 +1,6 @@
 const express = require('express');
 const Visitor = require('../../models/Visitor');
-const VisitPurpose = require('../../models/VisitPurpose');
+// const VisitPurpose = require('../../models/VisitPurpose');
 
 const register = async (req, res) => {
 

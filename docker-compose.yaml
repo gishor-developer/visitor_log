@@ -26,12 +26,6 @@ services:
   rediscache:
     image: redis:7.2.5
     container_name: rediscache
-    hostname: redis-server
-    ports:
-      - "6379:6379"
-  redis:
-    image: redis:7.2.5
-    container_name: redis
     restart: always
     volumes:
       - redis_volume_data:/data

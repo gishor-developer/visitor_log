@@ -4,6 +4,14 @@ const Joi = require('joi');
 const Auth = require('../models/Auth');
 const { registerSchema, tokenSchema } = require('../validations/authSchema');
 const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../helpers/jwtHelpers')
+const connectRedis = require('../config/redisClient')
+
+// Connect to RedisClient
+let redisClient;
+const initializeRedis = async () => {
+    redisClient = await connectRedis();
+};
+initializeRedis();
 
 const register = async (req, res, next) => {
     const userData = req.body;
@@ -146,6 +154,8 @@ const refresh_token = async (req, res, next) => {
             if (!token) throw createError.BadRequest()
             const authId = await verifyRefreshToken(token)
 
+            if (!authId) throw createError.Unauthorized()
+
             const accessToken = await signAccessToken(authId);
             const refreshToken = await signRefreshToken(authId);
 
@@ -163,4 +173,48 @@ const refresh_token = async (req, res, next) => {
     }
 }
 
-module.exports = { register, access_token, refresh_token }
+const revoke_token = async (req, res, next) => {
+    try {
+        const tokenData = req.body;
+
+        if (!req.headers['authorization']) return next(createError.Unauthorized())
+        const authHeader = req.headers['authorization'];
+
+        const { error, value } = tokenSchema.validate(tokenData);
+
+        if (error) {
+            next(createError.BadRequest('Invalid Request!'));
+        }
+
+        if (value.grant_type == 'refresh_token') {
+
+            const basicToken = authHeader.split(' ')
+            const token = basicToken[1];
+
+            if (!token) throw createError.BadRequest()
+            const authId = await verifyRefreshToken(token)
+
+            if (!authId) throw createError.Unauthorized();
+
+            const key = authId;
+            const result = await redisClient.del(key); // Delete the key
+
+            if (result === 1) {
+                res.status(200).send("Successfully re");
+            } else {
+                res.sendStatus(203)
+            }
+
+            // res.status(200).send({ accessToken, refreshToken });
+        }
+        else {
+            next(createError.BadRequest('Invalid Request!'));
+        }
+
+    } catch (error) {
+        console.log(error);
+        next(createError.BadRequest('Invalid Request!'))
+    }
+}
+
+module.exports = { register, access_token, refresh_token, revoke_token }

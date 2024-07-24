@@ -1,13 +1,13 @@
 const express = require('express');
-
-const redis = require('redis');
 const morgan = require('morgan');
 const createError = require('http-errors');
 
 require('dotenv').config();
 
 const bodyparser = require('body-parser');
-const connectDB = require('./config/db');
+const connectMongoDB = require('./config/db');
+const connectRedis = require('./config/redisClient');
+
 const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
@@ -26,20 +26,7 @@ const v2Routes = require('./routes/v2Routes');
 
 const port = process.env.PORT || 5000;
 
-// const client = require('./config/redis');
-
-    const client = redis.createClient({
-        host: 'redis', // Docker container host
-        port: 6379,        // Docker container port
-    });
-
-    client.on('connect', () => {
-        console.log('Client connected to redis...')
-    })
-
 const app = express()
-
-client.set('foo', 'Express');
 
 app.use(logger)
 app.use(bodyparser.urlencoded({ extended: true }))
@@ -48,7 +35,24 @@ app.use(express.json())
 app.use(express.static(path.join(__dirname, './public')))
 
 // Connect to MongoDB
-connectDB();
+connectMongoDB();
+
+// Connect to RedisClient
+let redisClient;
+const initializeRedis = async () => {
+    redisClient = await connectRedis();
+};
+initializeRedis();
+
+
+app.get('/set', async (req, res) => {
+    if (redisClient) {
+        await redisClient.set('key', 'value');
+        res.send('Value set in Redis');
+    } else {
+        res.status(500).send('Redis client not initialized');
+    }
+});
 
 // Use versioned routes
 app.use('/auth', authRoutes);

@@ -8,5 +8,6 @@ const authController = require("../controllers/authController");
 router.route('/register').post(authController.register);
 router.route('/access_token').post(authController.access_token);
 router.route('/refresh_token').post(authController.refresh_token);
+router.route('/revoke_token').post(authController.revoke_token);
 
 module.exports = router;
